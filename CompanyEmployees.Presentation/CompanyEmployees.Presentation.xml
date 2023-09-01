@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>CompanyEmployees.Presentation</name>
+    </assembly>
+    <members>
+        <member name="M:CompanyEmployees.Presentation.Controllers.CompaniesController.GetCompanies">
+            <summary>
+            Get the list of all Companies
+            </summary>
+            <returns>The companies list</returns>
+        </member>
+        <member name="M:CompanyEmployees.Presentation.Controllers.CompaniesController.CreateCompany(Shared.DTO.CompanyCreateDTO)">
+            <summary>
+            Creates a newly created company
+            </summary>
+            <param name="company"></param>
+            <returns>A newly created company</returns>
+            <response code="201">Returns a newly created item</response>
+            <response code="400">If is item is null</response>
+            <response code="422">If the model is invalid</response>
+        </member>
+    </members>
+</doc>
