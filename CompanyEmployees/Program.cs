@@ -130,21 +130,211 @@ NewtonsoftJsonPatchInputFormatter GetJsonPatchInputFormatter() =>
                                 .Value
                                 .InputFormatters
                                     .OfType<NewtonsoftJsonPatchInputFormatter>().First();
+#region DI IoC (INFO)
+/*
+      Dependency injection is a technique we use to achieve the decoupling of
+    objects and their dependencies. It means that rather than instantiating an
+    object explicitly in a class every time we need it, we can instantiate it
+    once and then send it to the class.
+     This is often done through a constructor. The specific approach we
+    utilize is also known as the Constructor Injection.
+     
+        In a system that is designed around DI, you may find many classes
+    requesting their dependencies via their constructors. In this case, it is
+    helpful to have a class that manages and provides dependencies to
+    classes through the constructor.
+     
+        (IoC) These classes are referred to as containers or more specifically, Inversion
+    of Control containers. An IoC container is essentially a factory that is
+    responsible for providing instances of the types that are requested from
+    it.
+ */
+#endregion
+#region Onion Architecture (INFO)
+/*
+    Независимая разработка каждого слоя своей командой, тестирование через Moq
+    Инкапсуляция бизнес-логики (DL SL) без знаний о реализации
+    Про КАК слои ВЗАИМОДЕСТВУЮТ: domain layer (DL), service layer (SL), presentatin layer (PL), infrastruture layer (IL) 
+    Концептуально PL и Il на ОДНОМ УРОВНЕ: PL + IL --> SL --> DL. Направление зависимостей к ядру (DL)
+    
+    ВСЕ СЛОИ (ЕСЛИ ИМ НУЖНЫ УСЛУГИ ИЗ ДРУГОГО СЛОЯ) МОГУТ ВЗАИМОДЕЙСТВОВАТЬ ЧЕРЕЗ ИНТЕРФЕЙСЫ, ОПРЕДЕЛЕННЫЕ ТОЛЬКО НА СЛОЕ НИЖЕ. 
+    напр, CEP -> SL.Contracts, SL.Contracts --> E + Sh
+        Благодаря IoC мы зависим от абстракций только во время компиляции (дает нам строгие контракты для логики),
+        а реализация предоставляется во время выполнения.
+    НИЗ (интерфейс контракт) ВЕРХ (реализация)
+    DL (ядро) - бизнес логика, транзакционная целостность. ПОЛНАЯ ИЗОЛЯЦИЯ ОТ ВНЕШНИХ СЛОЕВ
+  
 
+    SL - про убрать бизнес-логику из контроллеров и PL
+    
+    Repository pattern (DAL) - слой абстракции между data access (IL) и бизнес-логикой (DL) (class lib, хранение состояния модели) 
+ */
+#endregion
+#region BEGIN HERE) CONFIGURATION 1, 2 - about Program.cs
+/*
+    Begining
+    web.config not use anymore
+    - create main project CE (companyEmployees) (NET 6, HTTPS, use Controllers)
+    - lauchSettings.json (launchBrowser: false everywhere, we test in Postman)
+    - create C (Contracts) (class lib) and LS (LoggerService - impl logging) (class lib)
+    - add proj deps: C <--- LS <---- СE (CE know C throu LS)
+    create main log interface
+    - add C.ILoggerManager.cs (info, error, debug, warn log messages)
+    - add LS nuget>NLog
+    - add LS.LoggerManager : ILoggerMaanger
+        (Ilogger and LogManager from NLog namespace, LS.LoggerManager is wrap for it..)
+    config (NLog need information: where to keep log file in fs, name log file, min level of logging...)
+    - add New Item -> TextFile -> CE.nlog.config
+    - modify CE.Program.cs with prev configuring log service LogManager.LoadConfiguration(str....
+    - register log service in SE (CE.ServiceExtentions.ConfigureLoggerService) like Singleton (1 logS for all requests)
+    - modify CE.Program with builder.Services.CofigureLoggerService
+   
+    NOTE: : If you want to have more control over the log output, we suggest
+            renaming the current file to nlog.development.config and creating another
+            configuration file called nlog.production.config. Then you can do something like
+            this in the code: env.ConfigureNLog($"nlog.{env.EnvironmentName}.config");
+            to get the different configuration files for different environments. From our
+            experience production path is what matters, so this might be a bit redundant.
+    
+    after start app we get 2 folder (CE.internallogs and in CE//bin/debug/logs) all by nlog.config
+
+    we you need logging inject logger service into our class by DI -> Constructor Injection
+ */
+#endregion
+#region CREATE MODEL AND REPOSITORY PATTERN AND SERVICE LAYER 3
+/*
+    Т.к. API сразу создаем модель. Начинаем проект после подготоки здесь!
+    CREATE MODELS    
+    - create Entities (class lib) (E)
+    - add E.Models (содержит все классы сущностей (мапы на БД))
+    - add E.Models.[Company.cs, Employee.cs] (pay attention navigate props)
+    - create Repository (class lib)(R) + M.EFCore(nuget)
+    - add R ---> E  
+
+    CREATE DB CONTEXT WITH START INIT
+    - add R.RespositoryContext.cs:DbContext
+    - add ConnnectionString into appSettings.json
+    - add CE ---> R
+    - add CE.ContextFactory.RepositoryContextFactory.cs : IDesignTimeRepositoryContextFactory<out TContext>
+            (для получения экземпляра RepositoryContext при запуске миграций из консоли) (for disign time)
+    - add CE + M.EFCore.Tools for migrations cli-commands
+    - from CE : PE > Add-Migrations DatabaseCreation, 
+                PM > Update-Database (Консоль диспетчера пакетов)
+    - populate some initial data
+        add R.Configuration.[CompanyConfiguration|EmployeeConfiguration].cs
+        add them in R.RepositoryContext.OnModelCreating()
+        seed this data : PM > Add-Migration InitialData PM > Update-Database
+
+    CREATE REPOSITORY (DAL)
+    - create shared repo interface C.IRepositoryBase<T> (for separet logic is common for all and specific itself)
+    - add R ----> C
+    - add abstract R.RepositoryBase : IRespositoryBase<T> where T : class
+        generic T - no concrete model class. ITS BEHAVIOR PROPER FOR ANY REPO IMPLS
+        trackChages - improve query speed
+    - add C.[IEmployeeRepository | ICompanyRepository].cs
+    - add R.[CompanyRepository | EmployeeRepository] : RepositoryBase<[Company|Employee]>, [ICompanyRepository | IEmployeeRespository].cs
+    we need to combine repo logic from several or more classes. 
+
+    CREATE REPOSITORY MANAGER
+    - add C.IRepositoryManager
+    - add R.RepositoryManagerr : IRepositoryManager
+        SAVE CHANGES here! for fix changes from several classes
+        LAZY LOADING here! for eject only needed classes for query
+    - register our repo manager SE.ConfigureRepositoryManager
+    - call it service in CE.Program.cs
+
+    SERVICE LAYER (SL)
+        SL split into two projects (S.Contracts and S)
+    - create Service (S) and Service.Contracts (SC) (class libs) (INCAPSULATE MAIN BUSINESS LOGIC)
+    - add SC.[IEmployeeService | ICompanyService | IServiceManager].cs
+    - add S.[EmployeeService | CompanyService | ServiceManager].cs
+        ctor(IRepositoryManager | ILoggerManager)
+        Lazy loading
+    - register SE.ConfigureServiceManager
+    - register SE.ConfigureSqlContext (for runtime, its needed for ConfigureServiceManager. Don't need to specify MigrationAssembly)   
+    - call in CE.Program.cs
+ */
+#endregion
+#region HANDLING GET REQUEST AND PRESENTATION LAYER 4    
+/*
+     PL - its entry point for consumers
+     Because ASP.NET Core uses Dependency Injection everywhere, we need to have a reference to all of the projects in the solution from the main project. 
+     This allows us to configure our services inside the Program class. We can implement this layer in many ways, for example creating a REST API, gRPC, etc.
+
+      S and SC is parts of this puzzle
+    - create CompanyEmployees.Presentation (class lib) (CEP)
+    - add CEP nuget package for ControllerBase.cs (NET 6 - Microsoft.AspNetCore.Mvc.Core)
+    - add AssemblyReference.cs (its ref for CE)
+    - add CEP ---> SC
+    - add CE ---> CEP by CE.Program.cs (....AddApplicationPart...)
+            without it app won't knew where to route requests. App will find all Controllers in CEP
+    - add CEP.Controllers.CompanyController:ControllerBase
+        Attribute routing
+    
+    [Route] RESOURCE NAMING
+        The resource name in the URI should always be a noun and not an action.
+    That means if we want to create a route to get all companies, we should
+    create this route: api/companies and not this one:
+            /api/getCompanies.
+
+        The noun used in URI represents the resource and helps the consumer to
+    understand what type of resource we are working with. So, we shouldn’t
+    choose the noun products or orders when we work with the companies
+    resource; the noun should always be companies. Therefore, by following
+    this convention if our resource is employees (and we are going to work
+    with this type of resource), the noun should be employees.
+        Another important part we need to pay attention to is the hierarchy
+    between our resources. In our example, we have a Company as a
+    principal entity and an Employee as a dependent entity. When we create
+    a route for a dependent entity, we should follow a slightly different
+    convention:
+             /api/principalResource/{principalId}/dependentResource.
+        Because our employees can’t exist without a company, the route for the
+    employee's resource should be
+             /api/companies/{companyId}/employees.
+    With all of this in mind, we can start with the Get requests.
+
+    GET - REQUEST (Getting All Companies)
+        p.s. Getting all the entities from the database is a bad idea)  
+    - add C.ICompanyRepository.GetAllCompanies(bool trackChanges)
+    - add R.CompanyRepository.GetAllCompanies(bool trackChanges) -> RepositoryBase.FindAll...
+    - add SC.ICompanyService.GetAllCompanies(bool trackChanges)
+    - add S.CompanyService.GetAllACompanies(bool trackChanges)
+    - add CEP.CompanyController.GetAllCompanies().. look code
+
+    - create Shared (Sh) (class lib) (DTO - data transfer objects, return only needed immutable data (no validation need), can manipulate needed props)
+    - add Sh.DTO.CompanyDTO (record (C# 9 ref type, record struct (value type)) - eay way create immutable data)
+    - remove SC ---> E
+    - add SC ----> Sh
+    - modify SC.ICompanyService.GetAllCompanies to return IEnumerable<CompanyDTO>
+    - same for S.CompanyService.GetAllACompanies
+    
+    AUTOMAPPER (remove code for manual mapping from SL)
+
+    
+    - add S --> Automapper (PM> Install-Package AutoMapper.Extensions.Microsoft.DependencyInjection)
+    - register Automapper in CE.Program.cs AddAutoMapper
+    - add MappingProfile class (Auomapper work from ctor ForMember ForCtorMember look)
+    - apply mapper in S:
+        - add IMapper _mapper in S.[CompanyService | EmployeeService]
+        - modify S.CompanyService.GetAllCompanies with _mapper.Map
+        
+*/
+#endregion
 #region Centralized Exception Handling (asp net core build-in) 5   
 /*
- * 1. add E.ErrorModel.ErrorDetails.cs 
- * 2. add CE.Extensions.ExceptionMiddleWareExtension.cs in 
- * 3. modify Program.cs with code below
- * 4. remove app.UseDeveloperExceptionPage if exists (usual below in if(app.Env..IsDev(.
- * 5. remove try-catch blocks from 
- *     S.CompanyService.GetAllCompanies() and
- *     CEP.CompaniesController.GetCompanies() and other same
- *   test postman
- * 6. add abstract base E.Exeptions.NotFoundException
- * 7. add E.Exceptions.CompanyNotFoundException:NotFoundException
- * 8. update S.CompanyService.GetCompanyById() (add throw not found exception)
- * 9. update CE.Extextions.ExceptionMiddlewareExtension (add contextFeature.Error switch.. and contextFeature.Error.Message below.)
+    1. add E.ErrorModel.ErrorDetails.cs 
+    2. add CE.Extensions.ExceptionMiddleWareExtension.cs in 
+    3. modify Program.cs with code below
+    4. remove app.UseDeveloperExceptionPage if exists (usual below in if(app.Env..IsDev(.
+    5. remove try-catch blocks from 
+        S.CompanyService.GetAllCompanies() and
+        CEP.CompaniesController.GetCompanies() and other same
+      test postman
+    6. add abstract base E.Exeptions.NotFoundException
+    7. add E.Exceptions.CompanyNotFoundException:NotFoundException
+    8. update S.CompanyService.GetCompanyById() (add throw not found exception)
+    9. update CE.Extextions.ExceptionMiddlewareExtension (add contextFeature.Error switch.. and contextFeature.Error.Message below.)
  */
 #endregion
 #region Flow GET-requests 6   

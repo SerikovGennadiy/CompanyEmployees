@@ -10,7 +10,7 @@ namespace CompanyEmployees.ContextFactory
         {
             // make custom app configuration object
             var configuration =
-                new ConfigurationBuilder()
+                new ConfigurationBuilder() // IConfigurationRoot
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json")
                 .Build();
@@ -21,7 +21,7 @@ namespace CompanyEmployees.ContextFactory
                                             configuration.GetConnectionString("sqlConnection"),
                                             // transfer model to real database
                                             m => m.MigrationsAssembly("CompanyEmployees"));
-
+            
             return new RepositoryContext(builder.Options);
         }
     }
