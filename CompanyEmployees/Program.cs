@@ -1480,6 +1480,53 @@ SCOPED (нельзя интегр в SINGLETON)              SINGLETON (можно итегр в люб сер
               Добавить данные и ключи
                 - environmentVariable: add SECRET from win env variables (cmd>set)
     
-             
+        - ADD Login To SQL SERVER (IIS APPPOOL\CompanyEmployees)
+            open sql manager studio  
+            Add New MSSQL User
+                Security --> Logins --> New Login
+                   [ Select a page : General    
+                    - Login name: IIS APPPOOL\CompanyEmployees
+                    - Default Database: CompanyEmployees
+                       -> Ok]
+            Add To User needed credentials:
+                - expand Securit --> Logins --> right-click our new user
+                - choose Properties. in UserMappings select database CompanyEmployees and grant dbwriter and dbreader roles.
+        
+       Now we can send auhentication requests. Test in Postman
  */
+#endregion
+#region RESPONSE PERFORAMANCE IMPROVEMENTS
+/*
+  About custom response class
+     - move from service methods (error handling, return types, custom validations)
+  Create custom response class:
+     - add E.Responses.ApiBaseResponse.cs (base abstract response main for all success responses)
+     - add E.Responses.ApiOkREsponse<TResult> : ApiBaseResponse.cs (impl for all success responses)
+     - add E.Responses.ApiNotFoundResponse : ApiBaseResponse.cs (base for any NotFound)
+     - add E.Responses.ApiBadRequestResponse : ApiBaseResponse.cs 
+     - add E.Responses.CompanyNotFoundResponse : ApiNotFoundResponse
+
+BASE POPULATE RESPONSE FLOW FOR CONCRETE EXAMPLE (CompanyNotFoundResponse):
+      pass all needed for correct answer message params (companyId <guid>) CompanyNotFoundResponse 
+      -> pass ready response message to base (ApiNotFoundResponse)
+      -> pass false to base (ApiBaseResponse) :
+     sealed -> abstract -> abstract
+       guid -> message  -> false
+
+MODIFICATE SERVICE LAYER
+     - modify SC.ICompanyService with ApiBaseResponse GetAllCompanies and GetAllCompanyById
+             (ApiBaseResponse allow us to return any type, or not only either IEnumerable<CompanyDTO> or CompanyDTO)
+     - modify S.CompanyService with 2 new methods 
+CREATE WAY TO HANDLE ERROR RESPONSES
+     we create global error handling middleware works this ApiBaseResponse
+     - create additional middleware but it will be another ControllerBase class
+     - create CEP.Controllers.ApiControllerBase.cs : ControllerBase
+
+     benefit:
+     If you add additional error response classes to the Response folder, you
+     only have to add them here to process the response for the client. With ApiBaseResponse we don't need that
+
+MODIFY CEP LAYER:
+    - modify CEP.Controller.CompanyController with baseResult SL return type in GetCompanies.. GetCompanyById...
+*/
 #endregion

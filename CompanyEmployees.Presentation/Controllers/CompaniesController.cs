@@ -57,8 +57,9 @@ namespace CompanyEmployees.Presentation.Controllers
         //[ResponseCache(Duration = 60)]
         public async Task<IActionResult> GetCompany(Guid id)
         {
-            var company = await _service.CompanyService.GetCompanyByIdAsync(id, trackChanges: false);
-            return Ok(company);
+            //var company = await _service.CompanyService.GetCompanyByIdAsync(id, trackChanges: false);
+            //return Ok(company);
+            var baseResult = await _service.CompanyService.GetCompanyByIdAsync
         }
 
         /// <summary>

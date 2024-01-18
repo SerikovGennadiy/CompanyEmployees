@@ -4,6 +4,7 @@ using Service.Contracts;
 using AutoMapper;
 using Entities.Excepions;
 using Entities.Models;
+using Entities.Responses;
 
 namespace Service
 {
@@ -114,6 +115,28 @@ namespace Service
             if (company is null)
                 throw new CompanyNotFoundException(companyId: id);
             return company;
+        }
+
+        public ApiBaseResponse GetAllCompanies(bool trackChanges)
+        {
+            var companies = _repository.Company.GetAllCompaniesAsync(trackChanges);
+            var companiesDTO = _mapper.Map<IEnumerable<CompanyDTO>>(companies);
+            return new ApiOkResponse<IEnumerable<CompanyDTO>>(companiesDTO);
+        }
+        /* !!!!
+            Here we are not use exception class to return error result (CompanyNotFoundException)
+            With ApiBaseResponse abstraction, we are safe to return multiple types from our method,
+            as long as they inherit from ApiBaseResponse abstract class.
+            Here we can use _logger for some messages
+         */
+        public ApiBaseResponse GetCompanyById(Guid companyId, bool trackChanges)
+        {
+            var company = _repository.Company.GetCompanyByIdAsync(companyId, trackChanges);
+            if (company is null)
+                return new CompanyNotFoundResponse(companyId);
+
+            var companyDTO = _mapper.Map<CompanyDTO>(company);
+            return new ApiOkResponse<CompanyDTO>(companyDTO);
         }
     }
 }

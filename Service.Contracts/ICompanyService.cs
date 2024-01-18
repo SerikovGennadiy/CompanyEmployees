@@ -1,4 +1,5 @@
-﻿using Shared.DTO;
+﻿using Entities.Responses;
+using Shared.DTO;
 
 namespace Service.Contracts
 {
@@ -11,5 +12,9 @@ namespace Service.Contracts
         Task<(IEnumerable<CompanyDTO> companies, string ids)> CreateCompanyCollectionAsync(IEnumerable<CompanyCreateDTO> companyCollection);
         Task DeleteCompanyAsync(Guid companyId, bool trackChanges);
         Task UpdateCompanyAsync(Guid companyId, CompanyForUpdateDTO companyForUpdate, bool trackChanges);
+
+        // ApiBaseResponse allow us to return any type
+        ApiBaseResponse GetAllCompanies(bool trackChanges);
+        ApiBaseResponse GetCompanyById(Guid companyId, bool trackChanges);
     }
 }
