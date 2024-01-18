@@ -1497,6 +1497,7 @@ SCOPED (нельзя интегр в SINGLETON)              SINGLETON (можно итегр в люб сер
 #endregion
 #region RESPONSE PERFORAMANCE IMPROVEMENTS
 /*
+  FOR OFTEN RESPONSE RATE!
   About custom response class
      - move from service methods (error handling, return types, custom validations)
   Create custom response class:
@@ -1506,27 +1507,36 @@ SCOPED (нельзя интегр в SINGLETON)              SINGLETON (можно итегр в люб сер
      - add E.Responses.ApiBadRequestResponse : ApiBaseResponse.cs 
      - add E.Responses.CompanyNotFoundResponse : ApiNotFoundResponse
 
-BASE POPULATE RESPONSE FLOW FOR CONCRETE EXAMPLE (CompanyNotFoundResponse):
-      pass all needed for correct answer message params (companyId <guid>) CompanyNotFoundResponse 
-      -> pass ready response message to base (ApiNotFoundResponse)
-      -> pass false to base (ApiBaseResponse) :
-     sealed -> abstract -> abstract
-       guid -> message  -> false
+    BASE POPULATE RESPONSE FLOW FOR CONCRETE EXAMPLE (CompanyNotFoundResponse):
+          pass all needed for correct answer message params (companyId <guid>) CompanyNotFoundResponse 
+          -> pass ready response message to base (ApiNotFoundResponse)
+          -> pass false to base (ApiBaseResponse) :
+         sealed -> abstract -> abstract
+           guid -> message  -> false
 
-MODIFICATE SERVICE LAYER
-     - modify SC.ICompanyService with ApiBaseResponse GetAllCompanies and GetAllCompanyById
-             (ApiBaseResponse allow us to return any type, or not only either IEnumerable<CompanyDTO> or CompanyDTO)
-     - modify S.CompanyService with 2 new methods 
-CREATE WAY TO HANDLE ERROR RESPONSES
-     we create global error handling middleware works this ApiBaseResponse
-     - create additional middleware but it will be another ControllerBase class
-     - create CEP.Controllers.ApiControllerBase.cs : ControllerBase
+    MODIFICATE SERVICE LAYER
+         - modify SC.ICompanyService with ApiBaseResponse GetAllCompanies and GetAllCompanyById
+                 (ApiBaseResponse allow us to return any type, or not only either IEnumerable<CompanyDTO> or CompanyDTO)
+         - modify S.CompanyService with 2 new methods 
 
-     benefit:
-     If you add additional error response classes to the Response folder, you
-     only have to add them here to process the response for the client. With ApiBaseResponse we don't need that
+    CREATE WAY TO HANDLE ERROR RESPONSES
+         we create global error handling middleware works this ApiBaseResponse
+         - create additional middleware but it will be another ControllerBase class
+         - create CEP.Controllers.ApiControllerBase.cs : ControllerBase
 
-MODIFY CEP LAYER:
-    - modify CEP.Controller.CompanyController with baseResult SL return type in GetCompanies.. GetCompanyById...
+         benefit:
+         If you add additional error response classes to the Response folder, you
+         only have to add them here to process the response for the client. With ApiBaseResponse we don't need that
+
+    MODIFY CEP LAYER:
+        - modify CEP.Controller.CompanyController with baseResult SL return type in GetCompaniesByApiBaseController.. GetCompanyById...
+
+        in this place we have ugly casting like (ApiOkResponse<IEnumer....... 
+
+    REMOVE Return type casting from CEP.Controller.CompanyController.GetCompaniesByApiBaseController and ..GetCompaniesByIdByApiBaseController
+        - add CEP.Extensions.ApiBaseResponseExtentions.GetResult(...) 
+        make Casting Cleaner (as mentioned up)
+        - modify CAST RESULT in CEP.Controller.CompanyController.GetCompaniesByApiBaseController and ..GetCompaniesByIdByApiBaseController
+    beware with async
 */
 #endregion

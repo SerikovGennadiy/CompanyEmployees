@@ -14,7 +14,7 @@ namespace Service.Contracts
         Task UpdateCompanyAsync(Guid companyId, CompanyForUpdateDTO companyForUpdate, bool trackChanges);
 
         // ApiBaseResponse allow us to return any type
-        ApiBaseResponse GetAllCompanies(bool trackChanges);
-        ApiBaseResponse GetCompanyById(Guid companyId, bool trackChanges);
+        Task<ApiBaseResponse> GetAllCompanies(bool trackChanges);
+        Task<ApiBaseResponse> GetCompanyById(Guid companyId, bool trackChanges);
     }
 }

@@ -117,9 +117,9 @@ namespace Service
             return company;
         }
 
-        public ApiBaseResponse GetAllCompanies(bool trackChanges)
+        public async Task<ApiBaseResponse> GetAllCompanies(bool trackChanges)
         {
-            var companies = _repository.Company.GetAllCompaniesAsync(trackChanges);
+            var companies = await _repository.Company.GetAllCompaniesAsync(trackChanges);
             var companiesDTO = _mapper.Map<IEnumerable<CompanyDTO>>(companies);
             return new ApiOkResponse<IEnumerable<CompanyDTO>>(companiesDTO);
         }
@@ -129,9 +129,9 @@ namespace Service
             as long as they inherit from ApiBaseResponse abstract class.
             Here we can use _logger for some messages
          */
-        public ApiBaseResponse GetCompanyById(Guid companyId, bool trackChanges)
+        public async Task<ApiBaseResponse> GetCompanyById(Guid companyId, bool trackChanges)
         {
-            var company = _repository.Company.GetCompanyByIdAsync(companyId, trackChanges);
+            var company = await _repository.Company.GetCompanyByIdAsync(companyId, trackChanges);
             if (company is null)
                 return new CompanyNotFoundResponse(companyId);
 

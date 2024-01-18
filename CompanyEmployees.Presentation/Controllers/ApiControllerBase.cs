@@ -10,6 +10,7 @@ namespace CompanyEmployees.Presentation.Controllers
         public IActionResult ProcessError(ApiBaseResponse baseResponse)
         {
             // inspecting sent parametr baseResponse
+            // Преимущество - просто добавить новый абстрактный обработчик
             return baseResponse switch
             {
                 ApiNotFoundResponse => NotFound(new ErrorDetails

@@ -1,5 +1,7 @@
 ﻿using CompanyEmployees.Presentaion.ActionFilters;
+using CompanyEmployees.Presentation.Extensions;
 using CompanyEmployees.Presentation.ModelBinders;
+using Entities.Responses;
 using Marvin.Cache.Headers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -24,8 +26,10 @@ namespace CompanyEmployees.Presentation.Controllers
     [ApiController]
     [ApiVersion("1.0")]
     [ApiExplorerSettings(GroupName = "v1")]
-   // [ResponseCache(CacheProfileName = "120SecondsDuration")]
-    public class CompaniesController : ControllerBase
+    // [ResponseCache(CacheProfileName = "120SecondsDuration")]
+    
+    //public class CompaniesController : ControllerBase
+    public class CompaniesController : ApiControllerBase
     {
         private readonly IServiceManager _service;
         public CompaniesController(IServiceManager service) => _service = service;
@@ -41,8 +45,8 @@ namespace CompanyEmployees.Presentation.Controllers
             //try
             //{
             //throw new Exception("CEP Exception");
-                var companies = await _service.CompanyService.GetAllCompaniesAsync(trackChanges: false);
-                return Ok(companies);
+            var companies = await _service.CompanyService.GetAllCompaniesAsync(trackChanges: false);
+            return Ok(companies);
             //}
             //catch
             //{
@@ -57,9 +61,8 @@ namespace CompanyEmployees.Presentation.Controllers
         //[ResponseCache(Duration = 60)]
         public async Task<IActionResult> GetCompany(Guid id)
         {
-            //var company = await _service.CompanyService.GetCompanyByIdAsync(id, trackChanges: false);
-            //return Ok(company);
-            var baseResult = await _service.CompanyService.GetCompanyByIdAsync
+            var company = await _service.CompanyService.GetCompanyByIdAsync(id, trackChanges: false);
+            return Ok(company);
         }
 
         /// <summary>
@@ -126,6 +129,33 @@ namespace CompanyEmployees.Presentation.Controllers
         {
             Response.Headers.Add("Allow", "GET, OPTIONS, POST");
             return Ok();
+        }
+
+        [HttpGet("base/response")]
+        public async Task<IActionResult> GetCompaniesByApiBaseController()
+        {
+            // extract
+            var baseResult = await _service.CompanyService.GetAllCompanies(trackChanges: false);
+            // cast
+            //var companies =((ApiOkResponse<IEnumerable<CompanyDTO>>)baseResult).Result;
+            var companies = baseResult.GetResult<IEnumerable<CompanyDTO>>();
+            // return
+            return Ok(companies);
+        }
+       
+        [HttpGet("base/response/{id:guid}")]
+        public async Task<IActionResult> GetCompaniesByIdByApiBaseController(Guid id)
+        {
+            // extract result from service layer
+            var baseResult = await _service.CompanyService.GetCompanyById(id, trackChanges: false);
+            // check for problems
+            if (!baseResult.Success)
+                return ProcessError(baseResult);
+            // need to cast Result to proper type
+            // var company = ((ApiOkResponse<CompanyDTO>)baseResult).Result;
+            var company = baseResult.GetResult<CompanyDTO>();
+            // retur result
+            return Ok(company);
         }
     }
 }
