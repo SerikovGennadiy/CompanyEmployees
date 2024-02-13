@@ -1589,6 +1589,8 @@ SCOPED (нельзя интегр в SINGLETON)              SINGLETON (можно итегр в люб сер
             We can use IMediator = ISender (send requests to handlers) + IPublisher (for publish notifications).
             But ISender would be enough
 
+    we use separate CompanyContoller's version v3 CompanyController_v3.cs !!!!
+
     HANDLING REQUESTS WITH MEDIATR. THIS SHEET WORKS THROW REFLECTION (check types in IRequest, IRequestHandlers, ...)
         MediatR requiests - its simple request-response messages where !! SINGLE REQUEST IS SYNCHRONOUSLY HANDLED SINGLE HANDLER !!
         (SINCHRONOUS FROM REQUEST POINT OF VIEW, NOT INTERNAL C# ASYNC/AWAIT). Good for simple read db and db commands.

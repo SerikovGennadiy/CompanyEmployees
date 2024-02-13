@@ -21,5 +21,12 @@ namespace CompanyEmployees.Presentation.Controllers
             var companiesDTO = await _sender.Send(new GetCompaniesQuery(trackChages: false));
             return companiesDTO;
         }
+
+        [HttpGet("{id:guid}", Name ="CompanyId")]
+        public async Task<IActionResult> GetCompany(Guid Id)
+        {
+            var company = await _sender.Send(new GetCompanyQuery(Id: Id, trackChanges: false));
+            return Ok(company);
+        }
     }
 }
