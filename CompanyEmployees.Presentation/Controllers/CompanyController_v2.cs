@@ -7,8 +7,8 @@ namespace CompanyEmployees.Presentation.Controllers
     // for this version (2.0) with API URL Version (look at [Route..] WE CAN'T USE ..api/companies?api-version=2.0
     // BUT for version 1.0 we can  ...api/companies?api-version=1.0 with [Route("api/companies")]
     //[Route("api/{v:apiversion}/companies")] 
-
-    //for Header Verioning comment up [Route...
+    
+    //[ApiVersion...] attribute UPPER THAT OTHERS
     [Route("api/companies")]
     [ApiController]
     [ApiExplorerSettings(GroupName = "v2")]

@@ -15,6 +15,7 @@ using Service.DataShaping;
 using CompanyEmployees.Presentation.ActionFilters;
 using CompanyEmployees.Utility;
 using AspNetCoreRateLimit;
+using MediatR;
 // THE MOST IMPLEMENT EXAMPLES RELATED WITH EMPLOYEE-SPECIFIC SOLUTION
 var builder = WebApplication.CreateBuilder(args);
 
@@ -72,6 +73,8 @@ builder.Services.AddScoped<ValidationFilterAttribute>();
 builder.Services.AddScoped<ValidateMediaTypeAttribute>();
 builder.Services.AddScoped<IDataShaper<EmployeeDTO>, DataShaper<EmployeeDTO>>();
 builder.Services.AddScoped<IEmployeeLinks, EmployeeLinks>();
+
+builder.Services.AddMediatR(typeof(Application.AssemblyReference).Assembly);
 
 // builder.Build() implements
 // IHost(start stop host)
@@ -1086,6 +1089,14 @@ NewtonsoftJsonPatchInputFormatter GetJsonPatchInputFormatter() =>
     2. add CE.Extensions.ServiceExtensions(SE).ConfigureVersioning()
     2.1 add to service collection builder.Services.ConfigureVersioning()
     3 mark original CopmanyController with [ApiVersion("1.0"] check postman
+
+    С помощью атрибута MapToApiVersion мы имеем возможность управлять версиями на уровне методов:
+    [MapToApiVersion("3.0")]
+    [HttpGet]....
+
+    Если в запросе явно не указана api. Указываем ее SE.ConfigureVersioning { opt.DefaultApiVersion=...
+
+    Пометить Deprecated=true - устаревших
  */
 #endregion
 #region CASHING 25
@@ -1539,4 +1550,65 @@ SCOPED (нельзя интегр в SINGLETON)              SINGLETON (можно итегр в люб сер
         - modify CAST RESULT in CEP.Controller.CompanyController.GetCompaniesByApiBaseController and ..GetCompaniesByIdByApiBaseController
     beware with async
 */
+#endregion
+#region CQRS
+/*
+    CQRS - Command Query Responsibility Segregation.
+            C R U D (create read update delete)
+    Query   - read operations aka R
+    Command - changing operations CUD
+
+    Problem: Development usually start with DATABASE (keys (ref integrity), indexes, normalization... for write optimization)
+             Futher will be disbalace in read and write operations. DON'T worry about NoSQL, dublication
+    
+    + and - looks common for Command and Read Handlers
+    + Single Responsibility (h), Decoupling (h), Scalability (db), Testablility (h)
+    - Complexity, Learning Curve, Hard to Debug
+
+    Mediatr pattern
+    like message broker "publish/subscribe" pattern
+    MEDIATOR PATTERN Incapsulates interacts between objects. No need to keep refs to each other
+    NET. MediatR works in same process (same thread) - not async, not good. SO    
+    BEST PRACTICE TO SEPARATE QUERY AND COMMANDS ITS MESSAGE BROKERS (works in dif process): Kafka, RabbitMQ, Azure Message BUS.
+
+    BUT WHATEVER SHOW MEDIATR FOR DEMONSTRATION
+    1. create new class library Application (AP)
+    2. create AP.ApplicationRefference.cs (link to CE.Program.cs)
+    3. add in AP NUGET: (by book CODE-MAZE, MediatR 11.1.0 version. On 29.01.2024 already 12.0.0! )
+       3.1 APP -> PM>Install-Package MediatR
+       3.2 CE  -> PM>Install-Package MediatR.Extensions.Microsoft.DependencyInjection FOR WIRES UP MEDIATR AND ASP CORE DI container in CE
+        
+    4. register (configure) Mediart in CE.Program
+            builder.Services.AddMediatR(typeof(Application.AssemblyReference).Assembly);
+            [add CE -> AP and in CE.Program using MediatR] 
+            [AddMediartR scan project assembly that contains our business logic handlers. We are going to place handlers to AP
+            We are using Application(AP)'s assembly as paramentr]
+    5. inject into CEP.CompanyCotroller ctor ISender sender 
+          5.1 CEP -> AP
+            ISender - main being MediatR. Need to send requests to our handlers
+            We can use IMediator = ISender (send requests to handlers) + IPublisher (for publish notifications).
+            But ISender would be enough
+
+    HANDLING REQUESTS WITH MEDIATR. THIS SHEET WORKS THROW REFLECTION (check types in IRequest, IRequestHandlers, ...)
+        MediatR requiests - its simple request-response messages where !! SINGLE REQUEST IS SYNCHRONOUSLY HANDLED SINGLE HANDLER !!
+        (SINCHRONOUS FROM REQUEST POINT OF VIEW, NOT INTERNAL C# ASYNC/AWAIT). Good for simple read db and db commands.
+    1. create set of folders for COMPANY CQRS 
+          AP.Company -> Commands, Queries, Handlers
+    2. CQRS QUERY return not DB entities, but DTO's AP -> Sh (link Shared with DTO's)
+    3. add AP.Company.Queries.GetCompaniesQuery.cs (record)
+            impls IRequest<IEnum..<CompDTO>> only just means return list of companies
+    4. we'v got request in QUERY, we need handler
+       all business logic already done in out SL. Just replace it from SL to AP by needed links.
+          add AP -> Contracts (for IRepositoryManager for access to DB)
+       add AP.Company.Handlers.GetCompaniesHandler.cs
+            impls IRequestHandler<GetCompaniesQuery, IEnumerable<CompanyDTO>>
+    5. we need impls business logic in AP (SL logic puts into handler code)
+        check we have AutoMapper package in main project and we register this in builder.Services.AddAutoMapper...
+        check that into MappingProfile.cs map from Company -> CompanyDTO exists
+    6. modify AP.Companies.Hanlders.GetCompaniesHandler.cs with IMapper (look ctor)
+        trackChages pass throw GetCompaniesQuery
+        Handle() - all the same like in relative service method
+    7. modify CEP.CompanyController.GetCompany
+        
+ */
 #endregion

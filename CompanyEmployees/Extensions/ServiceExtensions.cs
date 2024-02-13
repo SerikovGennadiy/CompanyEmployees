@@ -111,7 +111,8 @@ namespace CompanyEmployees.Extensions
             {
                 // accepting default version for existing API 1.0
                 opt.AssumeDefaultVersionWhenUnspecified = true;
-                opt.DefaultApiVersion = new ApiVersion(1, 0);
+                //opt.DefaultApiVersion = new ApiVersion(1, 0);
+                opt.DefaultApiVersion = new ApiVersion(3, 0);
                
                 // add into response header info about active and deprecated API versions
                 // Headers: "api-supported-versions" and "api-deprecated-versions"

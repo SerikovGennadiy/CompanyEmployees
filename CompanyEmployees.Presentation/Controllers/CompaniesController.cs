@@ -3,6 +3,7 @@ using CompanyEmployees.Presentation.Extensions;
 using CompanyEmployees.Presentation.ModelBinders;
 using Entities.Responses;
 using Marvin.Cache.Headers;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Service.Contracts;
@@ -20,14 +21,15 @@ namespace CompanyEmployees.Presentation.Controllers
      * - Problem details for error status code
      */
     #endregion
+    // [ApiVersion...] attribute UPPER THAT OTHERS (next [Route])
+    [ApiVersion("1.0", Deprecated = true )]
     // all controller give access for authoroze users
     [Authorize]
     [Route("api/companies")]
     [ApiController]
-    [ApiVersion("1.0")]
     [ApiExplorerSettings(GroupName = "v1")]
     // [ResponseCache(CacheProfileName = "120SecondsDuration")]
-    
+
     //public class CompaniesController : ControllerBase
     public class CompaniesController : ApiControllerBase
     {
