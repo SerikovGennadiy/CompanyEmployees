@@ -1619,11 +1619,21 @@ SCOPED (нельз€ интегр в SINGLETON)              SINGLETON (можно итегр в люб сер
         Handle() - all the same like in relative service method
     7. modify CEP.CompanyController.GetCompany
         
-    COMMANDS WITH MEDIATR
+    COMMANDS WITH MEDIATR (CREATE)
     1. create command record for creation
          add record AP.Company.CreateCompanyCommand.cs 
     2. create AP.Company.Handlers.CreateCompanyHandler.cs
     3. add MappingRule.cs -> CreateMap<CompanyCreateDTO, Company>..
     4. add new action to controller
+
+        There is one important thing we have to understand here. We are 
+        communicating to a datastore via simple message constructs without 
+        having any idea on how itТs being implemented. The commands and 
+        queries could be pointing to different data stores. They donТt know how 
+        their request will be handled, and they donТt care.
+
+    UPDATE WITH MEDIATR
+    
+    
  */
 #endregion

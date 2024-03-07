@@ -4,6 +4,7 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Service.Contracts;
 using Shared.DTO;
+using System.Runtime.CompilerServices;
 
 namespace CompanyEmployees.Presentation.Controllers
 {
@@ -38,6 +39,25 @@ namespace CompanyEmployees.Presentation.Controllers
 
             var company = await _sender.Send(new CreateCompanyCommand(companyForCreateDTO));
             return CreatedAtRoute("CompanyId", new { id = company.Id }, company);
+        }
+
+        [HttpPut("{id:guid}")]
+        public async Task<IActionResult> UpdateCompany(Guid Id, CompanyForUpdateDTO companyForUpdateDTO)
+        {
+            if (companyForUpdateDTO is null)
+                return BadRequest("CompanyForUpdateDTO object is null");
+
+            await _sender.Send(new UpdateCompanyCommand(Id, companyForUpdateDTO, TrackChanges: true));
+
+            return NoContent();
+        }
+
+        [HttpDelete("{id:guid}")]
+        public async Task<IActionResult> DeleteCompany(Guid Id)
+        {
+            await _sender.Send(new DeleteCompanyCommand(Id, TrackChanges: false));
+
+            return NoContent();
         }
     }
 }

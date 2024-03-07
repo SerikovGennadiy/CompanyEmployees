@@ -17,7 +17,11 @@ namespace Application
                            //.ForCtorParam("FullAddress",
                            opt => opt.MapFrom(x => string.Join(' ', x.Address, x.Country)));
 
+            // for CreateCompanyCommand handler
             CreateMap<CompanyCreateDTO, Company>();
+
+            // for UpdateCompanyCommand handler
+            CreateMap<CompanyForUpdateDTO, Company>();
         }
     }
 }
