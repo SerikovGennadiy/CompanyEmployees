@@ -1,5 +1,6 @@
 ﻿using Application.Companies.Commands;
 using Application.Companies.Queries;
+using Application.Notifications;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Service.Contracts;
@@ -15,7 +16,14 @@ namespace CompanyEmployees.Presentation.Controllers
     public class CompaniesController_v3 : ControllerBase
     {
         private readonly ISender _sender;
-        public CompaniesController_v3(ISender sender) => _sender = sender;
+        private readonly IPublisher _publisher;
+
+        // IPublisher is needed for MedaiatR Notifications
+        // this being used to PUBLISH NOTIFICATIONS
+        public CompaniesController_v3(ISender sender, IPublisher publisher) {
+            _sender = sender;
+            _publisher = publisher;
+         }
 
         [HttpGet]
         public async Task<IEnumerable<CompanyDTO>> GetCompanies()
@@ -48,15 +56,14 @@ namespace CompanyEmployees.Presentation.Controllers
                 return BadRequest("CompanyForUpdateDTO object is null");
 
             await _sender.Send(new UpdateCompanyCommand(Id, companyForUpdateDTO, TrackChanges: true));
-
             return NoContent();
         }
 
         [HttpDelete("{id:guid}")]
         public async Task<IActionResult> DeleteCompany(Guid Id)
         {
-            await _sender.Send(new DeleteCompanyCommand(Id, TrackChanges: false));
-
+            //await _sender.Send(new DeleteCompanyCommand(Id, TrackChanges: false));
+            await _publisher.Publish(new CompanyDeletedNotification(Id, TrackChanges: false));
             return NoContent();
         }
     }

@@ -1632,8 +1632,26 @@ SCOPED (нельзя интегр в SINGLETON)              SINGLETON (можно итегр в люб сер
         queries could be pointing to different data stores. They don’t know how 
         their request will be handled, and they don’t care.
 
-    UPDATE WITH MEDIATR
+    UPDATE AND DELETE WITH MEDIATR
+
+        Абсолютно тоже самое!
+        Только код ответа 204! (NoContent) - нет возвращаемого значения.
+        Используется тип структура Unit (from returning void value)
+
+    NOTIFICATIONS
+        Мы рассмотрели атомарные операции. Но что если на произошедшее событие, далее
+        нужно выполнить несколько вспом/операций! (напр, запустить ЕЩЕ КОММАНДЫ, отправить push, email, обнулить кеш и тд)
+        Поэтому нужно сообщить все ЗАИНТЕРЕСОВАННЫМ что что-то случилось (напр, удалили запись в db)
+        
+    1. + AP.Notifications (папка)
+    2. + AP.Notifications.CompanyDeletedNotification
+            using INotification  - аналог IRequest, не возрвщающий значений (без Unit)
+    3. modify AP.Company.DeleteCompanyHandler with:
+        3.1 inh INotificationHandler interface
+    4. modify CEP.CompanyController_v3 with:
+        4.1 + ctor IPublisher (fire and forget)
+        4.2 replace in DeleteCompany method _sender.Send with _publisher.PUblish
     
-    
+    When delete company notification occurs will log message (look DeleteCompanyHandler)
  */
 #endregion
