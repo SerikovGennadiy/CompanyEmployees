@@ -16,6 +16,8 @@ namespace Application
                 .ForMember(c => c.FullAddress,
                            //.ForCtorParam("FullAddress",
                            opt => opt.MapFrom(x => string.Join(' ', x.Address, x.Country)));
+
+            CreateMap<CompanyCreateDTO, Company>();
         }
     }
 }

@@ -1,3 +1,10 @@
+// УСТАНОВИТЕ КЛЮЧ API:
+// ->  cmd: [setx SECRET CodeMazeApiSecretKey /M] (в переменные среды)
+// -> reload pc
+// -> инициализация сервисов не пройдет
+// Примените миграции SQL: CE.Migration -> они уже существуют
+// PM> Update-Database
+
 using NLog;
 // for our custom IServiceCollection extensions
 using CompanyEmployees.Extensions;
@@ -1612,5 +1619,11 @@ SCOPED (нельзя интегр в SINGLETON)              SINGLETON (можно итегр в люб сер
         Handle() - all the same like in relative service method
     7. modify CEP.CompanyController.GetCompany
         
+    COMMANDS WITH MEDIATR
+    1. create command record for creation
+         add record AP.Company.CreateCompanyCommand.cs 
+    2. create AP.Company.Handlers.CreateCompanyHandler.cs
+    3. add MappingRule.cs -> CreateMap<CompanyCreateDTO, Company>..
+    4. add new action to controller
  */
 #endregion

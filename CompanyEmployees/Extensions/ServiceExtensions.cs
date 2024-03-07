@@ -238,7 +238,7 @@ namespace CompanyEmployees.Extensions
 
                             // we are providing values for the issuer, the audience and secret key for generating jwt signature forJWT
                             /*
-                                configuration binding
+                                configuration file binding
                              */
                             //ValidIssuer = jwtSettings["validIssuer"],
                             //ValidAudience = jwtSettings["validAudience"],

@@ -1,4 +1,5 @@
-﻿using Application.Companies.Queries;
+﻿using Application.Companies.Commands;
+using Application.Companies.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Service.Contracts;
@@ -27,6 +28,16 @@ namespace CompanyEmployees.Presentation.Controllers
         {
             var company = await _sender.Send(new GetCompanyQuery(Id: Id, trackChanges: false));
             return Ok(company);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateCompany([FromBody] CompanyCreateDTO companyForCreateDTO)
+        {
+            if (companyForCreateDTO is null)
+                return BadRequest("CompanyCreateDTO object is null");
+
+            var company = await _sender.Send(new CreateCompanyCommand(companyForCreateDTO));
+            return CreatedAtRoute("CompanyId", new { id = company.Id }, company);
         }
     }
 }
