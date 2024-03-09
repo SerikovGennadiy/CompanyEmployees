@@ -41,9 +41,10 @@ namespace CompanyEmployees.Presentation.Controllers
 
         [HttpPost]
         public async Task<IActionResult> CreateCompany([FromBody] CompanyCreateDTO companyForCreateDTO)
-        {
-            if (companyForCreateDTO is null)
-                return BadRequest("CompanyCreateDTO object is null");
+        { 
+            // MediatR BEHAVIOR (validation) (см. Application proj)
+            //if (companyForCreateDTO is null)
+            //    return BadRequest("CompanyCreateDTO object is null");
 
             var company = await _sender.Send(new CreateCompanyCommand(companyForCreateDTO));
             return CreatedAtRoute("CompanyId", new { id = company.Id }, company);
