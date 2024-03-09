@@ -23,6 +23,8 @@ using CompanyEmployees.Presentation.ActionFilters;
 using CompanyEmployees.Utility;
 using AspNetCoreRateLimit;
 using MediatR;
+using FluentValidation;
+using Application.Behaviors;
 // THE MOST IMPLEMENT EXAMPLES RELATED WITH EMPLOYEE-SPECIFIC SOLUTION
 var builder = WebApplication.CreateBuilder(args);
 
@@ -82,7 +84,8 @@ builder.Services.AddScoped<IDataShaper<EmployeeDTO>, DataShaper<EmployeeDTO>>();
 builder.Services.AddScoped<IEmployeeLinks, EmployeeLinks>();
 
 builder.Services.AddMediatR(typeof(Application.AssemblyReference).Assembly);
-
+builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+builder.Services.AddValidatorsFromAssembly(typeof(Application.AssemblyReference).Assembly);
 // builder.Build() implements
 // IHost(start stop host)
 // IApplicationBuilder (make request pipeline) <- += all MW
@@ -1653,5 +1656,47 @@ SCOPED (нельзя интегр в SINGLETON)              SINGLETON (можно итегр в люб сер
         4.2 replace in DeleteCompany method _sender.Send with _publisher.PUblish
     
     When delete company notification occurs will log message (look DeleteCompanyHandler)
+
+    BEHAVIORS (e.g. validation)
+        Концепция, позволяющая выделить часто повторяющиеся операции (авторизацию, валидацию, логгировани и т.п.).
+        Выглядит как ASP.Core middleware, принимающий request, выполняющий действия и передающий его дальше.
+
+        Пример валидации (ПОВТОРИМ ДЛЯ ЗАПРОСОВ ЭТО НЕ НУЖНО, Т.К. В НИХ НЕТ ПОВЕДЕНИЯ)
+            Ранее реализовали чз data annotation attributes и ModelState (см. выше). 
+            Далее эта логика была вынесена в Action Filter'ы.
+        1. + PM> Install-package FluentValidation.AspNetCore (light library to easy define class validation)
+        2. register all validators in service collection:
+                Program.cs -> builder.Services.AddMediatR(typeof(Application.AssemblyReference).Assembly);
+                              builder.Services.AddAutoMapper(typeof(Program));
+                              builder.Services.AddValidatorsFromAssembly(typeof(Applciation.AssemblyReference).Assembly);
+        3. + AP.Validators;
+        4. + AP.Validators.CreateCompanyCommandValidator : AbstractValidator<CreateCompanyCommand>.....cs
+                чз AbstractValidator<КЛАСС> и директивы внутри FluentValidation понимает какие проверки применить к КЛАСС
+        5. Make PipelineBehavior (Decorator)
+            Обернуть каждый request. Похож на мидлвер только через тип IPipelineBehavior.cs
+            
+            public interface IPipelieBehavior<in TRequest, TResponse> where TResponse : notnull
+            {
+                Task<TResponse> Handle(TResuest requestm CancellationToken cancellationToken, RequestHandlerDelegate<TResponse> next);
+            }
+            
+        6. Before use IPipelineBevaior need to create new exception class:
+           + E.Exceptions.ValidationAddException.cs
+        7. impl IPipelineBehavior.cs
+           + A.Behaviors.ValidationBahvaior....cs
+        8. register in builder.Services
+                Program.cs -> builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavio<,>));
+        9. modify SE.ExceptionMiddlewareExtensions.cs
+
+        BEHAVIOR (null object validation)
+            All Infrasttrute validation BEHAVIOR is alrady prepred!
+            Everything we need is:
+        Когда валидируемый объект (напр, CreateCompanyDTO = null) то правила из экземпляра AbstractValidator применить не к чему
+        Этот случай обрабатывается отдельно
+        1. + modify AP.Validators.CreateCompanyCommandValidator with
+            overriding ValidationResult method
+        2. Можно из CEP.Controllers.CompanyController_v3 удалить проверку на null для DTO
+           + modify CEP.Controllers.CompanyController_V3.CreateCompany...
+    вернется 422 но для null объектов но для null объектов возвращать нужно 400! НО ЭТО ДЕЛАТЬ УЖЕ БУДЕМ МЫ)
  */
 #endregion
