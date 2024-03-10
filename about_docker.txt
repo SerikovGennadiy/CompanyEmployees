@@ -1,0 +1,6 @@
+2.1 Modify CE.Properties.launchSetting.json[profiles]
+	Исп-ся в основном в IDE. Для Docker нужны можификации:
+	1. ПРЕДОСТАВИТЬ ПОРТ К ПРИЛОЖЕНИЮ В КОНТЕЙНЕРЕ
+	  1.1 Удалить localhost из url'ов (в dc (docker containers) и снаружи IP localhost'ов разные)
+			Исп-ем IP 0.0.0.0 вместо localhost.
+      1.2 Удалить https: url'ы временно, пока сертификаты не настроили

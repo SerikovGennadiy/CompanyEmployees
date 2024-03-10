@@ -30,7 +30,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Application", "Application\
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Элементы решения", "Элементы решения", "{8FA57D06-6AF3-49AF-8BA5-856774077CCC}"
 	ProjectSection(SolutionItems) = preProject
-		about_docker.cs = about_docker.cs
+		about_docker.txt = about_docker.txt
 	EndProjectSection
 EndProject
 Global
