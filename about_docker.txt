@@ -8,3 +8,28 @@
 	  2.1 + CE ->  Microsoft.EntityFrameworkCore.InMemory для UseInMemoryDatabase (см. ниже)
 	  2.1 Модиф-ть SE.ConfigureSqlContext.cs с UseInMemoryDatabase
 	  2.3 Cтроку подк-я в application.json не трогать. В In-Memory исп-ся не будет, но потом пригодится.
+	
+	3. СОЗДАДИМ ДВА ПРОЕКТА ДЛЯ ВОЗМОЖНОСТИ ТЕСТИРОВАНИЯ (запуска тестов) ПРИЛОЖЕНИЯ В DC
+	  Работа через CLI будет основной при взаимодействии с DC
+	  3.1 создадим тестовый проект (T)
+		 cli> dotnet new xunit -o Tests (нужные пакеты установятся авт-ки)
+	  3.2 привяжем его к CE.sln
+		 cli> dotnet sln CompanyEmployees.sln add .\Tests\Tests.csproj
+	  3.3 добавить библ-ку Moq (имитация наборов данных) в T
+		 cli> cd Tests
+		      dotnet add package Moq
+			  dotnet restore
+	  3.4 добавим ссылку на проект, для которого будем писать тесты
+		 cli> dotnet add reference ..\Contracts\Contracts.csproj
+      -------------------------
+	  Добавим тест
+	  3.5 Переименовать UnitTest1.cs -> CompanyRepositoryTests.cs
+			тестирование логики слоя репозитория
+	  3.6 внутри тест на тип возвращаемого значения GetAllCompaniesAsync() и проверка,
+		  что возвращаемое значение единств. (для демонстрации) Arrange - Act - Assert.
+      3.7 запустим тест
+		  сli> dotnet test
+	  -------------------------
+	  ПРОВЕРКА РАБОТОСПО-ТИ ПРИЛОЖЕНИЯ, ПОМЕЩ В DC ОСУЩ-СЯ ЗАПУСКОМ ТЕСТОВ!!!
+	  1. Что-то СДЕЛАЛИ - 2. dc cli> dotnet build - 3. dc cli dontet test !!!
+================================================================================
