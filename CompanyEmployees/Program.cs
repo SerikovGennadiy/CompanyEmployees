@@ -1694,11 +1694,7 @@ SCOPED (нельзя интегр в SINGLETON)              SINGLETON (можно итегр в люб сер
         Когда валидируемый объект (напр, CreateCompanyDTO = null) то правила из экземпляра AbstractValidator применить не к чему
         Этот случай обрабатывается отдельно
         1. + modify AP.Validators.CreateCompanyCommandValidator with
-<<<<<<< HEAD
             overriding ValidationResult method  
-=======
-            overriding ValidationResult method
->>>>>>> 77eb4a6881659e733d53be50b699a01b951d4d51
         2. Можно из CEP.Controllers.CompanyController_v3 удалить проверку на null для DTO
            + modify CEP.Controllers.CompanyController_V3.CreateCompany...
     вернется 422 но для null объектов но для null объектов возвращать нужно 400! НО ЭТО ДЕЛАТЬ УЖЕ БУДЕМ МЫ)
