@@ -1,6 +1,10 @@
-2.1 Modify CE.Properties.launchSetting.json[profiles]
-	Исп-ся в основном в IDE. Для Docker нужны можификации:
-	1. ПРЕДОСТАВИТЬ ПОРТ К ПРИЛОЖЕНИЮ В КОНТЕЙНЕРЕ
+1. ПРЕДВАРИТЕЛЬНЫЕ НАСТРОЙКИ
+	1. CE.Properties.lauchSettings.json[profiles] ПРЕДОСТАВИТЬ ПОРТ К ПРИЛОЖЕНИЮ В КОНТЕЙНЕРЕ
 	  1.1 Удалить localhost из url'ов (в dc (docker containers) и снаружи IP localhost'ов разные)
 			Исп-ем IP 0.0.0.0 вместо localhost.
       1.2 Удалить https: url'ы временно, пока сертификаты не настроили
+
+	2. ПЕРЕКЛЮЧИТЬ РЕЖИМ БД в In-Memory (в оперативную память) (потом сделаем отдельно)
+	  2.1 + CE ->  Microsoft.EntityFrameworkCore.InMemory для UseInMemoryDatabase (см. ниже)
+	  2.1 Модиф-ть SE.ConfigureSqlContext.cs с UseInMemoryDatabase
+	  2.3 Cтроку подк-я в application.json не трогать. В In-Memory исп-ся не будет, но потом пригодится.

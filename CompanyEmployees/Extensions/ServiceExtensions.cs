@@ -62,7 +62,9 @@ namespace CompanyEmployees.Extensions
         {
             services.AddDbContext<RepositoryContext>(opts =>
             {
-                opts.UseSqlServer(configuration.GetConnectionString("sqlConnection"));
+                // -> opts.UseSqlServer(configuration.GetConnectionString("sqlConnection"));
+                opts.UseInMemoryDatabase("CompanyEmployees"); // need to isntall Microsoft.EntityFrameworkCore.InMemory 6.0.27!!!! -> its NET 6 PROJECT!
+                
             });
             // newest version NET 6 RC2 но лишен тонко настраивать db context
             // services.AddSqlServer<RepositoryContext>((configuration.GetConnectionString("sqlConnection")));
